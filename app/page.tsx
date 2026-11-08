@@ -7,12 +7,12 @@ import {
   Bell,
   Check,
   ChevronDown,
-  Coffee,
   Cog,
   HardHat,
   LayoutDashboard,
   Menu,
   PiggyBank,
+  Search,
   Sheet,
   Smartphone,
   Sparkles,
@@ -80,8 +80,8 @@ const offers: { icon: LucideIcon; title: string; text: string }[] = [
 
 const steps: { icon: LucideIcon; title: string; text: string }[] = [
   {
-    icon: Coffee,
-    title: "Kawa i konkrety.",
+    icon: Search,
+    title: "Analiza problemu - konkretne rozwiązania",
     text: "Siadamy i mówisz, co zajmuje Wam najwięcej czasu i z czym są problemy.",
   },
   {
@@ -379,6 +379,13 @@ function Contact() {
           <p className="mt-6 max-w-md text-lg leading-8 text-slate-300">
             Napisz z czym się zmagasz. Odezwiemy się i powiemy, czy da się to prosto zautomatyzować.
           </p>
+          <p className="mt-4 max-w-md text-base leading-7 text-slate-300">
+            Elbląg, ul. Grochowska 4B
+            <br />
+            <a href="tel:+48600647646" className="font-semibold text-amber-300">
+              600 647 646
+            </a>
+          </p>
         </div>
         <ContactForm />
       </div>
@@ -388,14 +395,17 @@ function Contact() {
 
 function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [errors, setErrors] = useState<{ name?: string; contact?: string; problem?: string }>({});
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name") ?? "").trim();
     const contact = String(data.get("contact") ?? "").trim();
     const problem = String(data.get("problem") ?? "").trim();
+    const description = String(data.get("description") ?? "").trim();
     const nextErrors: { name?: string; contact?: string; problem?: string } = {};
 
     if (!name) nextErrors.name = "Podaj imię lub nazwę firmy.";
@@ -403,8 +413,26 @@ function ContactForm() {
     if (!problem) nextErrors.problem = "Wybierz, z czym masz problem.";
 
     setErrors(nextErrors);
+    setSubmitError("");
     if (Object.keys(nextErrors).length > 0) return;
-    setSent(true);
+
+    setSending(true);
+    try {
+      const response = await fetch("contact.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, contact, problem, description }),
+      });
+      if (!response.ok) {
+        setSubmitError("Nie udało się wysłać wiadomości. Spróbuj jeszcze raz za chwilę.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setSubmitError("Nie udało się wysłać wiadomości. Sprawdź połączenie i spróbuj ponownie.");
+    } finally {
+      setSending(false);
+    }
   }
 
   if (sent) {
@@ -502,8 +530,13 @@ function ContactForm() {
           />
         </Field>
 
-        <button type="submit" className={`${primaryBtn} w-full sm:w-auto`}>
-          Wyślij zapytanie
+        {submitError ? (
+          <p className="text-sm text-red-700" role="alert">
+            {submitError}
+          </p>
+        ) : null}
+        <button type="submit" className={`${primaryBtn} w-full sm:w-auto disabled:opacity-60`} disabled={sending}>
+          {sending ? "Wysyłanie…" : "Wyślij zapytanie"}
         </button>
       </div>
     </form>
@@ -565,6 +598,9 @@ function SiteFooter() {
       <div className={`${container} flex flex-col gap-3 py-8 sm:flex-row sm:items-center sm:justify-between`}>
         <p className="font-semibold text-white">
           Omikron-<span className="text-amber-400">Software</span>
+          <span className="mt-1 block text-sm font-normal text-slate-400">
+            Elbląg, ul. Grochowska 4B
+          </span>
         </p>
         <p className="text-sm">
           Firma instalacyjna:{" "}
