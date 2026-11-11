@@ -43,7 +43,7 @@ const jsonLd = {
   name: "Omikron-Software",
   url: siteUrl,
   email: "kontakt@omikron-software.pl",
-  telephone: "+48600647646",
+  telephone: "+48503039612",
   image: `${siteUrl}/opengraph-image`,
   address: {
     "@type": "PostalAddress",

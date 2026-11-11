@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   ArrowRight,
   ArrowRightLeft,
   Bell,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Cog,
   HardHat,
   LayoutDashboard,
@@ -16,7 +18,6 @@ import {
   Sheet,
   Smartphone,
   Sparkles,
-  Wrench,
   X,
   Zap,
   type LucideIcon,
@@ -33,6 +34,7 @@ const ghostBtn =
 const navLinks = [
   { href: "#problemy", label: "Problemy" },
   { href: "#oferta", label: "Oferta" },
+  { href: "#realizacje", label: "Realizacje" },
   { href: "#o-nas", label: "O nas" },
   { href: "#wspolpraca", label: "Współpraca" },
 ] as const;
@@ -121,6 +123,7 @@ export default function HomePage() {
         <Hero />
         <Problems />
         <Offer />
+        <Projects />
         <About />
         <Process />
         <Contact />
@@ -140,13 +143,8 @@ function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-900/92 text-white backdrop-blur-md">
       <div className={`${container} flex h-[4.5rem] items-center justify-between gap-4`}>
-        <a href="#hero" className="flex items-center gap-2.5 font-bold tracking-tight" onClick={close}>
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-900 shadow-sm">
-            <Wrench className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <span>
-            Omikron-<span className="text-amber-400">Software</span>
-          </span>
+        <a href="#hero" className="inline-flex shrink-0 items-center" onClick={close}>
+          <img src="/logo.png" alt="Omikron Software" width={420} height={131} className="h-10 w-auto sm:h-11" />
         </a>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Główne">
@@ -305,6 +303,275 @@ function Offer() {
   );
 }
 
+const projects: {
+  title: string;
+  tags: string[];
+  text: string;
+  href?: string;
+  mockup: "site" | "config" | "ai" | "archive" | "workshop";
+}[] = [
+  {
+    title: "EDCKYDEX — strona i aplikacja",
+    tags: ["Strona www", "Aplikacja", "Zamówienia zdalne"],
+    text: "Witryna i aplikacja wytwórni kabur z kydexu. Klient ogląda ofertę i składa zamówienie zdalnie, dopasowane do swojego sprzętu.",
+    href: "https://edckydex.pl",
+    mockup: "site",
+  },
+  {
+    title: "EDCKYDEX — konfigurator produktów",
+    tags: ["Baza danych", "Automatyzacja", "Panel klienta"],
+    text: "Dedykowany system dla firmy z branży customowego oporządzenia. Zastąpiliśmy ręczne przyjmowanie zamówień automatycznym konfiguratorem, spiętym bezpośrednio z bazą danych produkcyjnych.",
+    href: "https://config.edckydex.pl",
+    mockup: "config",
+  },
+  {
+    title: "Aplikacja mobilna z asystentem AI",
+    tags: ["Sztuczna Inteligencja", "Aplikacja Mobilna", "API"],
+    text: "Pokazujemy, że aplikacja nie musi być tylko „bazą danych”. Wdrożyliśmy moduł sztucznej inteligencji, który na bieżąco analizuje wprowadzane informacje i komunikuje się z użytkownikiem, podpowiadając kolejne kroki. To technologia, która dotąd była zarezerwowana dla gigantów IT.",
+    mockup: "ai",
+  },
+  {
+    title: "KwitSejf – Mobilne archiwum dokumentów",
+    tags: ["Cyfryzacja dokumentów", "AI", "Chmura"],
+    text: "Koncepcja i prototyp inteligentnego systemu do cyfrowego przechowywania i kategoryzacji dokumentów z wbudowanym asystentem, pomagającym w analizie wprowadzonych danych.",
+    mockup: "archive",
+  },
+  {
+    title: "Demo: Organizer zleceń dla zakładu stolarskiego",
+    tags: ["Dla pracowników", "Logistyka", "Zarządzanie czasem"],
+    text: "Przykładowy system pokazujący, jak można zastąpić papierowe karty pracy cyfrowym panelem. Pracownik na hali widzi zlecenia na tablecie, a szef w biurze ma podgląd na postępy na żywo.",
+    mockup: "workshop",
+  },
+];
+
+function Projects() {
+  const scroller = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+
+    function update() {
+      if (!el) return;
+      setAtStart(el.scrollLeft <= 2);
+      setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+    }
+
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  function scrollByCard(direction: -1 | 1) {
+    const el = scroller.current;
+    const card = el?.querySelector("article");
+    if (!el || !card) return;
+    const gap = 20;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollBy({
+      left: direction * (card.getBoundingClientRect().width + gap),
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }
+
+  return (
+    <section id="realizacje" className="bg-[#e8edf3] py-20 sm:py-24">
+      <div className={container}>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHeading eyebrow="Realizacje" title="Nasze realizacje i wersje Demo" />
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Poprzednie realizacje"
+              disabled={atStart}
+              onClick={() => scrollByCard(-1)}
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Następne realizacje"
+              disabled={atEnd}
+              onClick={() => scrollByCard(1)}
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={scroller}
+          tabIndex={0}
+          aria-label="Nasze realizacje i wersje Demo"
+          className="mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-ps-0 pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-500 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {projects.map((item) => (
+            <article
+              key={item.title}
+              className="flex w-[88%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm sm:w-[calc(50%-0.625rem)]"
+            >
+              <ProjectMockup kind={item.mockup} />
+              <div className="flex flex-1 flex-col p-6">
+                <h3 className="text-xl font-bold tracking-tight text-balance text-slate-900">{item.title}</h3>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <li
+                      key={tag}
+                      className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-800"
+                    >
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-base leading-7 text-slate-600">{item.text}</p>
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex text-sm font-semibold text-amber-700 underline-offset-2 hover:underline"
+                  >
+                    {item.href.replace("https://", "")}
+                  </a>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProjectMockup({ kind }: { kind: (typeof projects)[number]["mockup"] }) {
+  if (kind === "site") {
+    return (
+      <div className="flex gap-3 bg-black p-4 text-white" aria-hidden="true">
+        <div className="min-w-0 flex-1 rounded-md border border-white/10 bg-zinc-950 p-3">
+          <div className="flex gap-2 text-[9px] uppercase tracking-[0.14em] text-zinc-500">
+            <span className="text-orange-500">Strona</span>
+            <span>Zamów</span>
+            <span>Kontakt</span>
+          </div>
+          <p className="mt-4 text-sm font-semibold tracking-[0.12em]">EDC KYDEX</p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-zinc-400">Kabury z kydexu</p>
+          <span className="mt-3 inline-flex rounded bg-orange-500 px-2 py-1 text-[10px] font-semibold text-black">
+            sprawdź ofertę
+          </span>
+        </div>
+        <div className="w-[5.5rem] shrink-0 rounded-[1.1rem] border border-orange-500/40 bg-zinc-950 p-2">
+          <p className="text-center text-[8px] font-semibold uppercase tracking-[0.14em] text-orange-400">Aplikacja</p>
+          <p className="mt-2 text-[10px] font-semibold leading-4">Zamów kaburę</p>
+          <div className="mt-2 space-y-1 text-[9px] text-zinc-200">
+            <p className="rounded border border-white/10 px-1.5 py-1">IWB</p>
+            <p className="rounded border border-white/10 px-1.5 py-1">OWB</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === "config") {
+    return (
+      <div className="bg-[#121212] p-3 text-white" aria-hidden="true">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[10px] font-semibold tracking-[0.16em] text-zinc-300">GENERATOR KABUR</p>
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-black">
+            1
+          </span>
+        </div>
+        <div className="grid grid-cols-[1.45fr_0.7fr] gap-2">
+          <div className="rounded-lg border border-white/10 p-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide">Co chcesz zamówić?</p>
+            <div className="mt-2 grid grid-cols-3 gap-1 text-[9px] leading-tight">
+              <span className="rounded border border-orange-500 px-1 py-2 text-center">Kabura</span>
+              <span className="rounded border border-white/15 px-1 py-2 text-center text-zinc-300">Nóż</span>
+              <span className="rounded border border-white/15 px-1 py-2 text-center text-zinc-300">Ładownica</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-white/10 p-2">
+            <p className="text-[9px] uppercase tracking-[0.14em] text-zinc-500">Razem</p>
+            <p className="mt-2 text-lg font-bold text-orange-500">100 zł</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === "ai") {
+    return (
+      <div className="flex justify-center bg-[linear-gradient(160deg,#e0e7ff,#fae8ff)] px-4 py-5" aria-hidden="true">
+        <div className="w-44 rounded-[1.6rem] bg-white p-2.5 shadow-md ring-1 ring-indigo-200">
+          <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-indigo-200" />
+          <p className="text-center text-[10px] font-semibold text-indigo-700">Asystent</p>
+          <div className="mt-2 space-y-1.5">
+            <p className="rounded-2xl rounded-tl-sm bg-indigo-50 px-2 py-1.5 text-[10px] leading-4 text-indigo-950">
+              Które zlecenia są dziś zagrożone?
+            </p>
+            <p className="rounded-2xl rounded-tr-sm bg-indigo-600 px-2 py-1.5 text-[10px] leading-4 text-white">
+              Dwa. Najbliższy termin: jutro, 8:00.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === "archive") {
+    const docs = [
+      ["Faktury", "12"],
+      ["Umowy", "4"],
+      ["Protokoły", "AI"],
+    ] as const;
+
+    return (
+      <div className="bg-[#efe4cf] p-4" aria-hidden="true">
+        <div className="relative rounded-sm border border-[#d7c4a1] bg-[#fffaf2] px-3 pb-3 pt-4 shadow-sm">
+          <span className="absolute -top-2 left-3 rounded-sm bg-[#9f2d2d] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#fff6ea]">
+            KwitSejf
+          </span>
+          <ul className="space-y-1.5 border-t border-dashed border-[#e4d3b5] pt-3">
+            {docs.map(([name, meta]) => (
+              <li key={name} className="flex items-baseline justify-between gap-3 text-xs">
+                <span className="font-medium text-[#3f3428]">{name}</span>
+                <span className="font-mono text-[10px] text-[#8a5a32]">{meta}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[#c4a574] p-4" aria-hidden="true">
+      <div className="rounded-sm bg-[#f7f1e6] p-3 shadow-sm ring-1 ring-[#8c6a3d]/30">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#6b4b2a]">Karta pracy</p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="border-l-4 border-[#8c6a3d] bg-white px-2 py-2">
+            <p className="text-[10px] font-bold uppercase text-[#6b4b2a]">Hala</p>
+            <p className="mt-1 text-xs font-semibold text-[#2b2118]">Szafa na wymiar</p>
+            <p className="mt-1 text-[10px] text-[#8c6a3d]">W toku</p>
+          </div>
+          <div className="border-l-4 border-[#3f6b4a] bg-white px-2 py-2">
+            <p className="text-[10px] font-bold uppercase text-[#3f6b4a]">Biuro</p>
+            <p className="mt-1 text-xs font-semibold text-[#2b2118]">Podgląd</p>
+            <p className="mt-1 text-[10px] text-[#3f6b4a]">3 z 5 gotowe</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function About() {
   const facts: { icon: LucideIcon; label: string }[] = [
     { icon: HardHat, label: "Działająca spółka instalacyjna" },
@@ -382,8 +649,8 @@ function Contact() {
           <p className="mt-4 max-w-md text-base leading-7 text-slate-300">
             Elbląg, ul. Grochowska 4B
             <br />
-            <a href="tel:+48600647646" className="font-semibold text-amber-300">
-              600 647 646
+            <a href="tel:+48503039612" className="font-semibold text-amber-300">
+              503 039 612
             </a>
           </p>
         </div>
@@ -596,12 +863,10 @@ function SiteFooter() {
   return (
     <footer className="bg-[#0b1220] text-slate-300">
       <div className={`${container} flex flex-col gap-3 py-8 sm:flex-row sm:items-center sm:justify-between`}>
-        <p className="font-semibold text-white">
-          Omikron-<span className="text-amber-400">Software</span>
-          <span className="mt-1 block text-sm font-normal text-slate-400">
-            Elbląg, ul. Grochowska 4B
-          </span>
-        </p>
+        <div>
+          <img src="/logo.png" alt="Omikron Software" width={420} height={131} className="h-10 w-auto" />
+          <p className="mt-2 text-sm text-slate-400">Elbląg, ul. Grochowska 4B</p>
+        </div>
         <p className="text-sm">
           Firma instalacyjna:{" "}
           <a
